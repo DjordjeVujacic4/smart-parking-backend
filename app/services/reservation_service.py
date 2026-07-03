@@ -126,3 +126,36 @@ def cancel_reservation(db: Session, user: User, reservation_id: int) -> Reservat
 
     db.refresh(reservation)
     return reservation
+
+
+def expire_overdue_reservations(db: Session) -> int:
+    now = datetime.now(timezone.utc)
+    reservations = list(
+        db.scalars(
+            select(Reservation)
+            .where(
+                Reservation.status == ReservationStatus.ACTIVE,
+                Reservation.expires_at < now,
+            )
+            .with_for_update()
+        )
+    )
+    if not reservations:
+        return 0
+
+    try:
+        for reservation in reservations:
+            reservation.status = ReservationStatus.EXPIRED
+            spot = db.scalar(
+                select(ParkingSpot)
+                .where(ParkingSpot.id == reservation.spot_id)
+                .with_for_update()
+            )
+            if spot is not None and spot.status == SpotStatus.RESERVED:
+                spot.status = SpotStatus.AVAILABLE
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return len(reservations)
