@@ -17,8 +17,10 @@ class ParkingSpotRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    location_id: int
     spot_number: str
     status: SpotStatus
+    location: ParkingLocationRead | None = None
 
 
 class ParkingLocationStatistics(BaseModel):

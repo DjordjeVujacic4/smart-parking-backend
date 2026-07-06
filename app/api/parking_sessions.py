@@ -14,7 +14,7 @@ from app.schemas.parking_session import (
 from app.services import parking_session_service
 from app.services.parking_session_service import (
     ActiveSessionExistsError,
-    ReservationAlreadyFulfilledError,
+    ReservationAlreadyParkedError,
     ReservationExpiredError,
     ReservationNotActiveError,
     ReservationNotFoundError,
@@ -43,8 +43,8 @@ def check_in(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found"
         )
-    except ReservationAlreadyFulfilledError:
-        raise _conflict("Reservation already fulfilled")
+    except ReservationAlreadyParkedError:
+        raise _conflict("Reservation already parked")
     except ReservationExpiredError:
         raise _conflict("Reservation has expired")
     except ReservationNotActiveError:

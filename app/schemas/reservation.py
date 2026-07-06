@@ -1,8 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import ReservationStatus
+from app.schemas.parking_location import ParkingSpotRead
+from app.schemas.vehicle import VehicleRead
 
 
 class ReservationCreate(BaseModel):
@@ -19,6 +21,10 @@ class ReservationRead(BaseModel):
     status: ReservationStatus
     expires_at: datetime
     created_at: datetime
+    vehicle: VehicleRead
+    parking_spot: ParkingSpotRead = Field(
+        validation_alias="spot", serialization_alias="parking_spot"
+    )
 
 
 class ReservationList(BaseModel):

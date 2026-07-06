@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import get_settings
 from app.models.enums import ReservationStatus, SpotStatus
@@ -40,20 +40,32 @@ class ReservationNotActiveError(Exception):
     pass
 
 
+def _with_related(statement):
+    """Eager-load the vehicle and spot (with its location) to avoid N+1 queries."""
+    return statement.options(
+        joinedload(Reservation.vehicle),
+        joinedload(Reservation.spot).joinedload(ParkingSpot.location),
+    )
+
+
 def list_reservations(db: Session, user: User) -> list[Reservation]:
     return list(
         db.scalars(
-            select(Reservation)
-            .where(Reservation.user_id == user.id)
-            .order_by(Reservation.id)
+            _with_related(
+                select(Reservation)
+                .where(Reservation.user_id == user.id)
+                .order_by(Reservation.id)
+            )
         )
     )
 
 
 def get_reservation(db: Session, user: User, reservation_id: int) -> Reservation:
     reservation = db.scalar(
-        select(Reservation).where(
-            Reservation.id == reservation_id, Reservation.user_id == user.id
+        _with_related(
+            select(Reservation).where(
+                Reservation.id == reservation_id, Reservation.user_id == user.id
+            )
         )
     )
     if reservation is None:

@@ -1,5 +1,5 @@
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.enums import SpotStatus
 from app.models.parking_location import ParkingLocation
@@ -27,6 +27,7 @@ def list_spots(db: Session, location_id: int) -> list[ParkingSpot]:
         db.scalars(
             select(ParkingSpot)
             .where(ParkingSpot.location_id == location_id)
+            .options(joinedload(ParkingSpot.location))
             .order_by(ParkingSpot.spot_number)
         )
     )
@@ -41,6 +42,7 @@ def list_available_spots(db: Session, location_id: int) -> list[ParkingSpot]:
                 ParkingSpot.location_id == location_id,
                 ParkingSpot.status == SpotStatus.AVAILABLE,
             )
+            .options(joinedload(ParkingSpot.location))
             .order_by(ParkingSpot.spot_number)
         )
     )

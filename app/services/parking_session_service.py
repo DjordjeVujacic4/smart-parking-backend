@@ -14,7 +14,7 @@ class ReservationNotFoundError(Exception):
     pass
 
 
-class ReservationAlreadyFulfilledError(Exception):
+class ReservationAlreadyParkedError(Exception):
     pass
 
 
@@ -50,8 +50,8 @@ def check_in(db: Session, user: User, reservation_id: int) -> ParkingSession:
     )
     if reservation is None:
         raise ReservationNotFoundError(reservation_id)
-    if reservation.status == ReservationStatus.FULFILLED:
-        raise ReservationAlreadyFulfilledError(reservation_id)
+    if reservation.status == ReservationStatus.PARKED:
+        raise ReservationAlreadyParkedError(reservation_id)
     if reservation.status == ReservationStatus.EXPIRED:
         raise ReservationExpiredError(reservation_id)
     if reservation.status != ReservationStatus.ACTIVE:
@@ -76,7 +76,7 @@ def check_in(db: Session, user: User, reservation_id: int) -> ParkingSession:
         raise ActiveSessionExistsError(reservation_id)
 
     try:
-        reservation.status = ReservationStatus.FULFILLED
+        reservation.status = ReservationStatus.PARKED
         spot.status = SpotStatus.OCCUPIED
         parking_session = ParkingSession(
             user_id=reservation.user_id,
