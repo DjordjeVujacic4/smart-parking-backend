@@ -120,6 +120,14 @@ def check_out(db: Session, user: User, parking_session_id: int) -> ParkingSessio
         )
         if spot is not None and spot.status == SpotStatus.OCCUPIED:
             spot.status = SpotStatus.AVAILABLE
+        if parking_session.reservation_id is not None:
+            reservation = db.scalar(
+                select(Reservation)
+                .where(Reservation.id == parking_session.reservation_id)
+                .with_for_update()
+            )
+            if reservation is not None and reservation.status == ReservationStatus.PARKED:
+                reservation.status = ReservationStatus.COMPLETED
         db.commit()
     except Exception:
         db.rollback()

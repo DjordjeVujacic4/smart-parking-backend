@@ -12,6 +12,7 @@ class ReservationStatus(str, enum.Enum):
     EXPIRED = "expired"
     CANCELLED = "cancelled"
     PARKED = "parked"
+    COMPLETED = "completed"
 
 
 class SessionStatus(str, enum.Enum):
